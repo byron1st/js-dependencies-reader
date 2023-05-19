@@ -12,9 +12,9 @@ type DependencyRelation = {
 };
 
 async function run() {
-  const result: IReporterOutput = await cruise([
-    "/Users/byron1st/Workspace/research/references/fabric-gateway-v2/src",
-  ]);
+  const rootPath = getRootPath();
+
+  const result: IReporterOutput = await cruise([rootPath]);
   const output = result.output as ICruiseResult;
 
   output.modules
@@ -25,6 +25,17 @@ async function run() {
       callee: resolveCallee(callee),
     }))
     .forEach((item) => console.log(JSON.stringify(item)));
+}
+
+const flag = "--root";
+
+export function getRootPath(): string {
+  const index = process.argv.findIndex((arg) => arg === flag);
+  if (index === -1 || process.argv.length < index + 2) {
+    throw new Error(`Usage: ${flag} <rootPath>`);
+  }
+
+  return process.argv[index + 1];
 }
 
 function getDependencyRelations(
@@ -49,4 +60,4 @@ function removeAfterNodeModules(value: string): string {
   return value.slice(value.indexOf("/node_modules/") + "/node_modules/".length);
 }
 
-run().then(console.log).catch(console.error);
+run().catch(console.error);
