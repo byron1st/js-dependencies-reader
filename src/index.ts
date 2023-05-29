@@ -20,6 +20,12 @@ async function run() {
   output.modules
     .filter((module) => !module.source.includes("/node_modules/"))
     .reduce(getDependencyRelations, [])
+    .filter(({ callee }) => {
+      return (
+        callee.dependencyTypes[0] === "npm" ||
+        callee.dependencyTypes[0] === "core"
+      );
+    })
     .map(({ caller, callee }) => ({
       caller: path.resolve(caller.source),
       callee: resolveCallee(callee),
@@ -51,9 +57,7 @@ function getDependencyRelations(
 function resolveCallee(callee: IDependency): string {
   return callee.dependencyTypes[0] === "core"
     ? callee.module
-    : callee.dependencyTypes[0] === "npm"
-    ? removeAfterNodeModules(callee.resolved)
-    : path.resolve(callee.resolved);
+    : removeAfterNodeModules(callee.resolved);
 }
 
 function removeAfterNodeModules(value: string): string {
